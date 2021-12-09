@@ -63,17 +63,17 @@ class ReversinglabsConnector(BaseConnector):
         random_string = phantom.get_random_chars(size=10)
 
         try:
-            md5_hash = hashlib.md5(random_string).hexdigest()
+            sha256_hash = hashlib.sha256(random_string).hexdigest()
         except TypeError:  # py3
-            md5_hash = hashlib.md5(random_string.encode('UTF-8')).hexdigest()
+            sha256_hash = hashlib.sha256(random_string.encode('UTF-8')).hexdigest()
 
         self.save_progress(REVERSINGLABS_GENERATED_RANDOM_HASH)
 
         tree = lambda: defaultdict(tree)
-        hash_type = 'md5'
+        hash_type = 'sha256'
         query = tree()
         query['rl']['query']['hash_type'] = hash_type
-        query['rl']['query']['hashes'] = [md5_hash]
+        query['rl']['query']['hashes'] = [sha256_hash]
 
         self.save_progress(REVERSINGLABS_MSG_CONNECTING_WITH_URL, url=MAL_PRESENCE_API_URL, hash_type=hash_type)
 
