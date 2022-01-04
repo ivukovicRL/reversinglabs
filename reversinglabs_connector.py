@@ -15,21 +15,19 @@
 #
 #
 # Phantom imports
+import hashlib
+from builtins import str
+from collections import defaultdict
+
 import phantom.app as phantom
-from phantom.app import BaseConnector
-from phantom.app import ActionResult
+import requests
+# Other imports used by this connector
+import simplejson as json
+from phantom.app import ActionResult, BaseConnector
+from requests.auth import HTTPBasicAuth
 
 # THIS Connector imports
 from reversinglabs_consts import *
-
-# Other imports used by this connector
-import simplejson as json
-import hashlib
-import requests
-from requests.auth import HTTPBasicAuth
-from collections import defaultdict
-
-from builtins import str
 
 
 class ReversinglabsConnector(BaseConnector):
@@ -80,7 +78,8 @@ class ReversinglabsConnector(BaseConnector):
         config = self.get_config()
 
         try:
-            r = requests.post(MAL_PRESENCE_API_URL, verify=config[phantom.APP_JSON_VERIFY], auth=self._auth, data=json.dumps(query), headers=self._headers)
+            r = requests.post(MAL_PRESENCE_API_URL, verify=config[phantom.APP_JSON_VERIFY],
+                            auth=self._auth, data=json.dumps(query), headers=self._headers)
         except Exception as e:
             self.set_status(phantom.APP_ERROR, 'Request to server failed', e)
             return self.get_status()
@@ -161,7 +160,8 @@ class ReversinglabsConnector(BaseConnector):
         self.save_progress(REVERSINGLABS_MSG_CONNECTING_WITH_URL, url=MAL_PRESENCE_API_URL, hash_type=hash_type)
 
         try:
-            r = requests.post(MAL_PRESENCE_API_URL, verify=config[phantom.APP_JSON_VERIFY], auth=self._auth, data=json.dumps(query), headers=self._headers)
+            r = requests.post(MAL_PRESENCE_API_URL, verify=config[phantom.APP_JSON_VERIFY],
+                            auth=self._auth, data=json.dumps(query), headers=self._headers)
         except Exception as e:
             return action_result.set_status(phantom.APP_ERROR, "Request to server failed", e)
 
@@ -200,7 +200,8 @@ class ReversinglabsConnector(BaseConnector):
         self.save_progress(REVERSINGLABS_MSG_CONNECTING_WITH_URL, url=XREF_API_URL, hash_type=hash_type)
 
         try:
-            r = requests.post(XREF_API_URL, verify=config[phantom.APP_JSON_VERIFY], auth=self._auth, data=json.dumps(query), headers=self._headers)
+            r = requests.post(XREF_API_URL, verify=config[phantom.APP_JSON_VERIFY],
+                            auth=self._auth, data=json.dumps(query), headers=self._headers)
         except Exception as e:
             return action_result.set_status(phantom.APP_ERROR, "XREF API Request to server failed", e)
 
@@ -267,9 +268,10 @@ class ReversinglabsConnector(BaseConnector):
 
 if __name__ == '__main__':
 
-    import sys
-    import pudb
     import argparse
+    import sys
+
+    import pudb
 
     pudb.set_trace()
 
