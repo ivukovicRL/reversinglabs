@@ -78,7 +78,8 @@ class ReversinglabsConnector(BaseConnector):
         config = self.get_config()
 
         try:
-            r = requests.post(MAL_PRESENCE_API_URL, verify=config[phantom.APP_JSON_VERIFY],
+            r = requests.post(MAL_PRESENCE_API_URL,      # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
+                            verify=config[phantom.APP_JSON_VERIFY],
                             auth=self._auth, data=json.dumps(query), headers=self._headers)
         except Exception as e:
             self.set_status(phantom.APP_ERROR, 'Request to server failed', e)
@@ -160,7 +161,8 @@ class ReversinglabsConnector(BaseConnector):
         self.save_progress(REVERSINGLABS_MSG_CONNECTING_WITH_URL, url=MAL_PRESENCE_API_URL, hash_type=hash_type)
 
         try:
-            r = requests.post(MAL_PRESENCE_API_URL, verify=config[phantom.APP_JSON_VERIFY],
+            r = requests.post(MAL_PRESENCE_API_URL,      # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
+                            verify=config[phantom.APP_JSON_VERIFY],
                             auth=self._auth, data=json.dumps(query), headers=self._headers)
         except Exception as e:
             return action_result.set_status(phantom.APP_ERROR, "Request to server failed", e)
@@ -200,7 +202,8 @@ class ReversinglabsConnector(BaseConnector):
         self.save_progress(REVERSINGLABS_MSG_CONNECTING_WITH_URL, url=XREF_API_URL, hash_type=hash_type)
 
         try:
-            r = requests.post(XREF_API_URL, verify=config[phantom.APP_JSON_VERIFY],
+            r = requests.post(XREF_API_URL,     # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
+                            verify=config[phantom.APP_JSON_VERIFY],
                             auth=self._auth, data=json.dumps(query), headers=self._headers)
         except Exception as e:
             return action_result.set_status(phantom.APP_ERROR, "XREF API Request to server failed", e)
@@ -280,12 +283,14 @@ if __name__ == '__main__':
     argparser.add_argument('input_test_json', help='Input Test JSON file')
     argparser.add_argument('-u', '--username', help='username', required=False)
     argparser.add_argument('-p', '--password', help='password', required=False)
+    argparser.add_argument('-v', '--verify', action='store_true', help='verify', required=False, default=False)
 
     args = argparser.parse_args()
     session_id = None
 
     username = args.username
     password = args.password
+    verify = args.verify
 
     if (username is not None and password is None):
 
@@ -296,7 +301,8 @@ if __name__ == '__main__':
     if (username and password):
         try:
             print("Accessing the Login page")
-            r = requests.get(BaseConnector._get_phantom_base_url() + "login", verify=False)
+            r = requests.get(      # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
+                            BaseConnector._get_phantom_base_url() + "login", verify=verify)
             csrftoken = r.cookies['csrftoken']
 
             data = dict()
@@ -309,15 +315,16 @@ if __name__ == '__main__':
             headers['Referer'] = BaseConnector._get_phantom_base_url() + 'login'
 
             print("Logging into Platform to get the session id")
-            r2 = requests.post(BaseConnector._get_phantom_base_url() + "login", verify=False, data=data, headers=headers)
+            r2 = requests.post(      # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
+                            BaseConnector._get_phantom_base_url() + "login", verify=verify, data=data, headers=headers)
             session_id = r2.cookies['sessionid']
         except Exception as e:
             print("Unable to get session id from the platfrom. Error: " + str(e))
-            exit(1)
+            sys.exit(1)
 
     if (len(sys.argv) < 2):
         print("No test json specified as input")
-        exit(0)
+        sys.exit(0)
 
     with open(sys.argv[1]) as f:
         in_json = f.read()
@@ -333,4 +340,4 @@ if __name__ == '__main__':
         ret_val = connector._handle_action(json.dumps(in_json), None)
         print(json.dumps(json.loads(ret_val), indent=4))
 
-    exit(0)
+    sys.exit(0)
