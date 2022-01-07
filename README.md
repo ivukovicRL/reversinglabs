@@ -2,13 +2,39 @@
 # ReversingLabs
 
 Publisher: Splunk  
-Connector Version: 2\.0\.3  
+Connector Version: 2\.1\.1  
 Product Vendor: ReversingLabs  
 Product Name: TitaniumCloud  
 Product Version Supported (regex): "\.\*"  
-Minimum Product Version: 4\.9\.39220  
+Minimum Product Version: 5\.0\.0  
 
 This app implements an investigative action on the ReversingLabs reputation service
+
+
+# Splunk> Phantom
+
+Welcome to the open-source repository for Splunk> Phantom’s reversinglabs App.
+
+Please have a look at our [Contributing
+Guide](https://github.com/Splunk-SOAR-Apps/.github/blob/main/.github/CONTRIBUTING.md) if you are
+interested in contributing, raising issues, or learning more about open-source Phantom apps.
+
+## Legal and License
+
+This Phantom App is licensed under the Apache 2.0 license. Please see our [Contributing
+Guide](https://github.com/Splunk-SOAR-Apps/.github/blob/main/.github/CONTRIBUTING.md#legal-notice)
+for further details.
+
+## Port Information
+
+The app uses HTTP/ HTTPS protocol for communicating with the ReversingLabs server. Below are the
+default ports used by Splunk SOAR.
+
+|         Service Name | Transport Protocol | Port |
+|----------------------|--------------------|------|
+|         http         | tcp                | 80   |
+|         https        | tcp                | 443  |
+
 
 ### Configuration Variables
 The below configuration variables are required for this Connector to operate.  These variables are specified when configuring a TitaniumCloud asset in SOAR.
