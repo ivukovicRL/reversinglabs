@@ -1,24 +1,33 @@
 # File: reversinglabs_connector.py
-# Copyright (c) 2014-2021 Splunk Inc.
 #
-# Licensed under Apache 2.0 (https://www.apache.org/licenses/LICENSE-2.0.txt)
-
+# Copyright (c) 2014-2022 Splunk Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed under
+# the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied. See the License for the specific language governing permissions
+# and limitations under the License.
+#
+#
 # Phantom imports
+import hashlib
+from builtins import str
+from collections import defaultdict
+
 import phantom.app as phantom
-from phantom.app import BaseConnector
-from phantom.app import ActionResult
+import requests
+# Other imports used by this connector
+import simplejson as json
+from phantom.app import ActionResult, BaseConnector
+from requests.auth import HTTPBasicAuth
 
 # THIS Connector imports
 from reversinglabs_consts import *
-
-# Other imports used by this connector
-import simplejson as json
-import hashlib
-import requests
-from requests.auth import HTTPBasicAuth
-from collections import defaultdict
-
-from builtins import str
 
 
 class ReversinglabsConnector(BaseConnector):
@@ -52,24 +61,26 @@ class ReversinglabsConnector(BaseConnector):
         random_string = phantom.get_random_chars(size=10)
 
         try:
-            md5_hash = hashlib.md5(random_string).hexdigest()
+            sha256_hash = hashlib.sha256(random_string).hexdigest()
         except TypeError:  # py3
-            md5_hash = hashlib.md5(random_string.encode('UTF-8')).hexdigest()
+            sha256_hash = hashlib.sha256(random_string.encode('UTF-8')).hexdigest()
 
         self.save_progress(REVERSINGLABS_GENERATED_RANDOM_HASH)
 
         tree = lambda: defaultdict(tree)
-        hash_type = 'md5'
+        hash_type = 'sha256'
         query = tree()
         query['rl']['query']['hash_type'] = hash_type
-        query['rl']['query']['hashes'] = [md5_hash]
+        query['rl']['query']['hashes'] = [sha256_hash]
 
         self.save_progress(REVERSINGLABS_MSG_CONNECTING_WITH_URL, url=MAL_PRESENCE_API_URL, hash_type=hash_type)
 
         config = self.get_config()
 
         try:
-            r = requests.post(MAL_PRESENCE_API_URL, verify=config[phantom.APP_JSON_VERIFY], auth=self._auth, data=json.dumps(query), headers=self._headers)
+            r = requests.post(MAL_PRESENCE_API_URL,      # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
+                            verify=config[phantom.APP_JSON_VERIFY],
+                            auth=self._auth, data=json.dumps(query), headers=self._headers)
         except Exception as e:
             self.set_status(phantom.APP_ERROR, 'Request to server failed', e)
             return self.get_status()
@@ -150,7 +161,9 @@ class ReversinglabsConnector(BaseConnector):
         self.save_progress(REVERSINGLABS_MSG_CONNECTING_WITH_URL, url=MAL_PRESENCE_API_URL, hash_type=hash_type)
 
         try:
-            r = requests.post(MAL_PRESENCE_API_URL, verify=config[phantom.APP_JSON_VERIFY], auth=self._auth, data=json.dumps(query), headers=self._headers)
+            r = requests.post(MAL_PRESENCE_API_URL,      # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
+                            verify=config[phantom.APP_JSON_VERIFY],
+                            auth=self._auth, data=json.dumps(query), headers=self._headers)
         except Exception as e:
             return action_result.set_status(phantom.APP_ERROR, "Request to server failed", e)
 
@@ -189,7 +202,9 @@ class ReversinglabsConnector(BaseConnector):
         self.save_progress(REVERSINGLABS_MSG_CONNECTING_WITH_URL, url=XREF_API_URL, hash_type=hash_type)
 
         try:
-            r = requests.post(XREF_API_URL, verify=config[phantom.APP_JSON_VERIFY], auth=self._auth, data=json.dumps(query), headers=self._headers)
+            r = requests.post(XREF_API_URL,     # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
+                            verify=config[phantom.APP_JSON_VERIFY],
+                            auth=self._auth, data=json.dumps(query), headers=self._headers)
         except Exception as e:
             return action_result.set_status(phantom.APP_ERROR, "XREF API Request to server failed", e)
 
@@ -256,9 +271,10 @@ class ReversinglabsConnector(BaseConnector):
 
 if __name__ == '__main__':
 
-    import sys
-    import pudb
     import argparse
+    import sys
+
+    import pudb
 
     pudb.set_trace()
 
@@ -267,12 +283,14 @@ if __name__ == '__main__':
     argparser.add_argument('input_test_json', help='Input Test JSON file')
     argparser.add_argument('-u', '--username', help='username', required=False)
     argparser.add_argument('-p', '--password', help='password', required=False)
+    argparser.add_argument('-v', '--verify', action='store_true', help='verify', required=False, default=False)
 
     args = argparser.parse_args()
     session_id = None
 
     username = args.username
     password = args.password
+    verify = args.verify
 
     if (username is not None and password is None):
 
@@ -283,7 +301,8 @@ if __name__ == '__main__':
     if (username and password):
         try:
             print("Accessing the Login page")
-            r = requests.get(BaseConnector._get_phantom_base_url() + "login", verify=False)
+            r = requests.get(      # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
+                            BaseConnector._get_phantom_base_url() + "login", verify=verify)
             csrftoken = r.cookies['csrftoken']
 
             data = dict()
@@ -296,15 +315,16 @@ if __name__ == '__main__':
             headers['Referer'] = BaseConnector._get_phantom_base_url() + 'login'
 
             print("Logging into Platform to get the session id")
-            r2 = requests.post(BaseConnector._get_phantom_base_url() + "login", verify=False, data=data, headers=headers)
+            r2 = requests.post(      # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
+                            BaseConnector._get_phantom_base_url() + "login", verify=verify, data=data, headers=headers)
             session_id = r2.cookies['sessionid']
         except Exception as e:
             print("Unable to get session id from the platfrom. Error: " + str(e))
-            exit(1)
+            sys.exit(1)
 
     if (len(sys.argv) < 2):
         print("No test json specified as input")
-        exit(0)
+        sys.exit(0)
 
     with open(sys.argv[1]) as f:
         in_json = f.read()
@@ -320,4 +340,4 @@ if __name__ == '__main__':
         ret_val = connector._handle_action(json.dumps(in_json), None)
         print(json.dumps(json.loads(ret_val), indent=4))
 
-    exit(0)
+    sys.exit(0)
