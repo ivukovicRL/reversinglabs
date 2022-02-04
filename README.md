@@ -2,11 +2,11 @@
 # ReversingLabs
 
 Publisher: Splunk  
-Connector Version: 2\.1\.4  
+Connector Version: 2\.1\.5  
 Product Vendor: ReversingLabs  
 Product Name: TitaniumCloud  
 Product Version Supported (regex): "\.\*"  
-Minimum Product Version: 5\.0\.0  
+Minimum Product Version: 5\.1\.0  
 
 This app implements an investigative action on the ReversingLabs reputation service
 
